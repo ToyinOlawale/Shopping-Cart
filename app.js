@@ -120,6 +120,45 @@ class UI {
     cartOverlay.classList.add("transparentBcg");
     cartDOM.classList.add("showCart");
   }
+  setupAPP() {
+    //upon loading the application, set cart values whether cart is empty or not
+    cart = Storage.getCart();
+    this.setCartValues(cart);
+    this.populateCart(cart);
+    cartBtn.addEventListener("click", this.showCart);
+    closeCartBtn.addEventListener("click", this.hideCart);
+  }
+  populateCart(cart) {
+    cart.forEach((item) => this.addCartItem(item));
+  }
+  hideCart() {
+    cartOverlay.classList.remove("transparentBcg");
+    cartDOM.classList.remove("showCart");
+  }
+  cartLogic() {
+    clearCartBtn.addEventListener("click", () => {
+      this.clearCart();
+    });
+  }
+  clearCart() {
+    let cartItems = cart.map((item) => item.id);
+    cartItems.forEach((id) => this.removeItem(id));
+    while (cartContent.children.length > 0) {
+      cartContent.removeChild(cartContent.children[0]);
+    }
+    this.hideCart();
+  }
+  removeItem(id) {
+    cart = cart.filter((item) => item.id !== id);
+    this.setCartValues(cart);
+    Storage.saveCart(cart);
+    let button = this.getSingleButton(id);
+    button.disabled = false;
+    button.innerHTML = `<i class = "fa fa-shopping-cart"></i>Add to cart`;
+  }
+  getSingleButton(id) {
+    return buttonsDOM.find((button) => button.dataset.id === id);
+  }
 }
 
 // local storage
@@ -134,12 +173,18 @@ class Storage {
   static saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }
+  static getCart() {
+    return localStorage.getItem("cart")
+      ? JSON.parse(localStorage.getItem("cart"))
+      : []; //if local storage is empty, return an empty array
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const ui = new UI();
   const products = new Products();
-
+  //setup app
+  ui.setupAPP();
   //get all products
   products
     .getProducts()
@@ -150,5 +195,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .then(() => {
       ui.getBagButtons();
+      ui.cartLogic();
     });
 });
