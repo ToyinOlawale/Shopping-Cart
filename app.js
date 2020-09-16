@@ -1,3 +1,10 @@
+const client = contentful.createClient({
+  // This is the space ID. A space is like a project folder in Contentful terms
+  space: "qxjrcyzyfx42",
+  // This is the access token for this space. Normally you get both ID and the token in the Contentful web app
+  accessToken: "Ctcg-6Pz2Q6i4Favw7bUKx48F63ScYQh_6VQJ53UQWM",
+});
+
 const cartBtn = document.querySelector(".cart-btn");
 const closeCartBtn = document.querySelector(".close-cart");
 const clearCartBtn = document.querySelector(".clear-cart");
@@ -17,15 +24,23 @@ let buttonsDOM = [];
 class Products {
   async getProducts() {
     try {
-      let result = await fetch("products.json");
-      let data = await result.json();
+      let contentful = await client.getEntries({
+        content_type: "cassieWardrobeItems",
+      });
+      console.log(contentful);
 
-      let products = data.items;
+      // let result = await fetch("products.json");
+      // let data = await result.json(); for when using products.json file
+
+      let products = contentful.items; // when using contentful
+      console.log(products);
+      // let products = data.items; when using products.json
       products = products.map((item) => {
         const { title, price } = item.fields;
         const { id } = item.sys;
-        const image = item.fields.image.fields.file.url;
-        return { title, price, id, image };
+        const description = item.fields.description;
+        const image = item.fields.picture.fields.file.url;
+        return { title, price, id, image, description };
       });
       return products;
     } catch (error) {
@@ -53,7 +68,8 @@ class UI {
             </button>
           </div>
           <h3>${product.title}</h3>
-          <h4>$${product.price}</h4>
+          <h3>${product.description}</h3>
+          <h4>NGN ${product.price}</h4>          
         </article>
     `)
     );
